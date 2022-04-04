@@ -7,7 +7,7 @@ class priorityQ:
 
     def insert(self, element: puzzle):
         self.data.append(element)
-        self.data.sort(key=lambda x: x.heuristic+x.cost)
+        self.data.sort(key=lambda x: x.heuristic)
 
     def is_in(self, element: puzzle) -> int:
         for i in range(0, len(self.data)):
@@ -31,5 +31,5 @@ class priorityQ:
 
     def get(self):
         node = self.data.pop(0)
-        self.data.sort(key=lambda x: x.heuristic+x.cost)
+        self.data.sort(key=lambda x: x.heuristic)
         return node

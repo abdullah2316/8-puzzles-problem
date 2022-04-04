@@ -51,28 +51,21 @@ def get_reversed_tiles(puzzle_state: list) -> int:
         for j in range(0, 3):
             if temp[i][j] != -1:
                 cost = int(cityblock((i, j,), goal_st[temp[i][j] - 1]))
-                if cost == 1:
-                    if j - 1 >= 0:  # checking left neighbour
-                        if temp[i][j - 1] != -1:
-                            if (i, j,) == goal_st[temp[i][j - 1] - 1]:
-                                count += 2
-                                temp[i][j - 1] = -1
-                    if j + 1 <= 2:  # checking right neighbour
-                        if temp[i][j + 1] != -1:
-                            if (i, j,) == goal_st[temp[i][j + 1] - 1]:
-                                count += 2
-                                temp[i][j + 1] = -1
-                    if i - 1 >= 0:  # checking upper neighbour
-                        if temp[i - 1][j] != -1:
-                            if (i, j,) == goal_st[temp[i - 1][j] - 1]:
-                                count += 2
-                                temp[i - 1][j] = -1
-                    if i + 1 <= 2:  # checking left neighbour
-                        if temp[i + 1][j] != -1:
-                            if (i, j,) == goal_st[temp[i + 1][j] - 1]:
+                # if cost == 1:
+                if j + 1 <= 2:  # checking right neighbour
+                    if temp[i][j + 1] != -1:
+                        if int(cityblock(goal_st[temp[i][j] - 1], goal_st[temp[i][j + 1] - 1])) == 1:
+                            if int(cityblock((i, j,), goal_st[temp[i][j + 1] - 1])) == 1:
+                                if goal_st[temp[i][j] - 1] > goal_st[temp[i][j + 1] - 1]:
+                                    count += 2
+                                    temp[i][j + 1] = -1
+                if i + 1 <= 2:  # checking down neighbour
+                    if temp[i + 1][j] != -1:
+                        if int(cityblock(goal_st[temp[i][j] - 1], goal_st[temp[i + 1][j] - 1])) == 1:
+                            if goal_st[temp[i][j] - 1][0] > goal_st[temp[i+1][j] - 1][0]:  # nechai hai
                                 count += 2
                                 temp[i + 1][j] = -1
-                    temp[i][j] = -1
+                temp[i][j] = -1
 
     return 2 * count
 
@@ -163,8 +156,9 @@ def A_star(start_state: puzzle, visited: list):
 
     while not q.empty():
         node = q.get()
+        node.print_grid()
         visited.append(node.puzzle_data)
-
+        print()
         if goal_test(node.puzzle_data):
             return node
         c = get_children(node, 'left')
@@ -189,15 +183,13 @@ def A_star(start_state: puzzle, visited: list):
 
     return None
 
-    pass
-
 
 def check_duplicate(pqueue: priorityQ, node: puzzle, visited: list):
     index = pqueue.is_in(node)
     if node.puzzle_data in visited:
         return False
     elif index != -1:
-        if (pqueue.data[index].cost + pqueue.data[index]) > (node.cost + node.heuristic):
+        if (pqueue.data[index].cost + pqueue.data[index].heuristic) > (node.cost + node.heuristic):
             pqueue.replace(node, index)
             return True
     else:
@@ -208,23 +200,29 @@ def check_duplicate(pqueue: priorityQ, node: puzzle, visited: list):
 
 # read starting state of problem from a text file and store it in a list
 # -1 in text file stands for empty tile
-def populate_grid():
+def populate_grid(indices: list):
     with open('input.txt') as f:
         pz_state = []
+        count = 0
         for line in f:
             line = line.split()
             if line:
-                line = [int(i) for i in line]
+                line = [int(index) for index in line]
+                if -1 in line:
+                    ind = line.index(-1)
+                    indices.append(count)
+                    indices.append(ind)
                 pz_state.append(line)
+            count += 1
     return pz_state
 
 
 if __name__ == "__main__":
-
-    starting_state = populate_grid()
+    index_empty = []
+    starting_state = populate_grid(index_empty)
     if is_solvable(starting_state):
         start_node = puzzle(starting_state)
-        start_node.empty_tile = [2, 1]
+        start_node.empty_tile = index_empty
         start_node.heuristic = get_out_of_place_tiles(start_node)
         explored = []
         goal = A_star(start_node, explored)
@@ -237,8 +235,8 @@ if __name__ == "__main__":
             stack.put(n)
             print(goal, " goal")
             print("all nodes expanded:")
-            for i in range(0, len(explored)):
-                print(explored[i])
+            for a in range(0, len(explored)):
+                print(explored[a])
             UI_init(stack, [3, 3])
             # print("path to goal:")
             # while not stack.empty():
